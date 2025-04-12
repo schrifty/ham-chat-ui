@@ -11,7 +11,6 @@ declare global {
 		interface Locals {
 			sessionId: string;
 			user?: User & { logoutDisabled?: boolean };
-			isAdmin: boolean;
 		}
 
 		interface Error {

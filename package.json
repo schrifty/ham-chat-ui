@@ -12,7 +12,7 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"test": "vitest",
-		"updateLocalEnv": "vite-node --options.transformMode.ssr='/.*/' scripts/updateLocalEnv.ts",
+		"updateLocalEnv": "node --loader ts-node/esm scripts/updateLocalEnv.ts",
 		"populate": "vite-node --options.transformMode.ssr='/.*/' scripts/populate.ts",
 		"prepare": "husky"
 	},
@@ -80,6 +80,7 @@
 		"dotenv": "^16.0.3",
 		"express": "^4.21.2",
 		"file-type": "^19.4.1",
+		"firebase": "^11.6.0",
 		"google-auth-library": "^9.13.0",
 		"handlebars": "^4.7.8",
 		"highlight.js": "^11.7.0",
