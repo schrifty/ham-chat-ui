@@ -30,29 +30,50 @@ sudo npm install -g pm2
 pm2 -v || (echo "PM2 install failed"; exit 1)
 
 log "Cloning ChatUI"
-sudo git clone https://github.com/huggingface/chat-ui.git /opt/chatui || true
-sudo chown -R ubuntu:ubuntu /opt/chatui
-cd /opt/chatui
+sudo git clone https://github.com/schrifty/ham-chat-ui.git /opt/ham-chat-ui || true
+sudo chown -R ubuntu:ubuntu /opt/ham-chat-ui
+cd /opt/ham-chat-ui
 
-log "Patching vite to bind to all interfaces"
-sed -i 's|"dev": "vite dev"|"dev": "vite dev --host 0.0.0.0"|' package.json
+log "Patching Vite to bind to all interfaces"
+sed -i 's|"dev": "vite dev"|"dev": "vite dev --host 0.0.0.0"|' package.json || true
 
 log "Setting up .env.local"
-cp .env .env.local
+cp -n .env .env.local || true
 echo "MONGODB_URL=mongodb://localhost:27017" >> .env.local
 echo "HF_TOKEN=your_token_here" >> .env.local
 
 log "Installing ChatUI dependencies"
 npm install
 
-log "Starting ChatUI with PM2"
-pm2 start "npm run dev" --name chatui
+log "Starting Ham ChatUI with PM2"
+pm2 start "npm run dev" --name ham-chat-ui
 pm2 save
 
-log "Installing NGINX"
+log "Installing and configuring NGINX"
 sudo apt install -y nginx
 sudo systemctl enable nginx
 sudo systemctl start nginx
 
-log "Configuring NGINX reverse proxy"
-sudo tee /etc/nginx/sites-available/chatui
+log "Writing NGINX site config"
+sudo tee /etc/nginx/sites-available/ham-chat-ui > /dev/null <<EOF
+server {
+    listen 80;
+    server_name _;
+
+    location / {
+        proxy_pass http://localhost:5173;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+    }
+}
+EOF
+
+log "Activating NGINX site"
+sudo ln -sf /etc/nginx/sites-available/ham-chat-ui /etc/nginx/sites-enabled/ham-chat-ui
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo systemctl reload nginx
+
+log "Provisioning complete"
