@@ -50,15 +50,17 @@ resource "aws_instance" "ham_chat_ui_instance" {
   vpc_security_group_ids      = [aws_security_group.chatui_sg.id]
   associate_public_ip_address = true
 
+  root_block_device { 
+    volume_size = 16     # or whatever you want (in GB)
+    volume_type = "gp3"  # modern general-purpose SSD
+  }
+
   tags = {
     Name = "ham-chat-ui-ec2"
   }
 }
 
-root_block_device {
-  volume_size = 16     # or whatever you want (in GB)
-  volume_type = "gp3"  # modern general-purpose SSD
-}
+
 
 output "chatui_public_ip" {
   value = aws_instance.ham_chat_ui_instance.public_ip
