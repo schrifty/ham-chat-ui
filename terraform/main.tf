@@ -53,6 +53,7 @@ resource "aws_instance" "ham_chat_ui_instance" {
   root_block_device { 
     volume_size = 16     # or whatever you want (in GB)
     volume_type = "gp3"  # modern general-purpose SSD
+     delete_on_termination = true
   }
 
   tags = {
