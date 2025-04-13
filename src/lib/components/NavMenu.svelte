@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { base } from "$app/paths";
 
-	import Logo from "$lib/components/icons/Logo.svelte";
+	import HamiltonLogo from "$lib/components/icons/HamiltonLogo.svelte";
 	import { switchTheme } from "$lib/switchTheme";
 	import { isAborted } from "$lib/stores/isAborted";
 	import { env as envPublic } from "$env/dynamic/public";
@@ -92,8 +92,7 @@
 		class="flex items-center rounded-xl text-lg font-semibold"
 		href="{envPublic.PUBLIC_ORIGIN}{base}/"
 	>
-		<Logo classNames="mr-1" />
-		{envPublic.PUBLIC_APP_NAME}
+		<HamiltonLogo />
 	</a>
 	{#if $page.url.pathname !== base + "/"}
 		<a

@@ -38,6 +38,7 @@
 	import type { ToolFront } from "$lib/types/Tool";
 	import { loginModalOpen } from "$lib/stores/loginModal";
 	import { beforeNavigate } from "$app/navigation";
+	import { getLKEPrompt } from "$lib/utils/lkePrompt";
 
 	interface Props {
 		messages?: Message[];
@@ -68,7 +69,7 @@
 	let isReadOnly = $derived(!models.some((model) => model.id === currentModel.id));
 
 	let message: string = $state("");
-	let timeout: ReturnType<typeof setTimeout>;
+	let timeout: NodeJS.Timeout | undefined;
 	let isSharedRecently = $state(false);
 	let editMsdgId: Message["id"] | null = $state(null);
 	let pastedLongContent = $state(false);
@@ -166,19 +167,22 @@
 		)
 	);
 
-	function onShare() {
+	async function onShare() {
 		if (!confirm("Are you sure you want to share this conversation? This cannot be undone.")) {
 			return;
 		}
-
 		dispatch("share");
 		isSharedRecently = true;
-		if (timeout) {
-			clearTimeout(timeout);
-		}
-		timeout = setTimeout(() => {
+		setTimeout(() => {
 			isSharedRecently = false;
 		}, 2000);
+	}
+
+	async function onLKEClick() {
+		const prompt = await getLKEPrompt();
+		if (prompt) {
+			dispatch("message", prompt);
+		}
 	}
 
 	onDestroy(() => {
@@ -372,7 +376,15 @@
 		{/if}
 
 		<div class="w-full">
-			<div class="flex w-full *:mb-3">
+			<div class="flex w-full *:mb-3 items-center">
+				<button
+					type="button"
+					onclick={onLKEClick}
+					disabled={loading}
+					class="btn flex h-8 rounded-lg border bg-white px-3 py-1 shadow-sm transition-all hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600"
+				>
+					LKE
+				</button>
 				{#if loading}
 					<StopGeneratingBtn classNames="ml-auto" onClick={() => dispatch("stop")} />
 				{:else if lastIsError}

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { env as envPublic } from "$env/dynamic/public";
-	import Logo from "$lib/components/icons/Logo.svelte";
+	import SimpleLogo from "$lib/components/icons/SimpleLogo.svelte";
 	import { createEventDispatcher } from "svelte";
 	import IconGear from "~icons/bi/gear-fill";
 	import AnnouncementBanner from "../AnnouncementBanner.svelte";
@@ -26,17 +26,15 @@
 	<div class="lg:col-span-1">
 		<div>
 			<div class="mb-3 flex items-center text-2xl font-semibold">
-				<Logo classNames="mr-1 flex-none" />
-				{envPublic.PUBLIC_APP_NAME}
+				<SimpleLogo classNames="mr-1 flex-none" />
 				<div
 					class="ml-3 flex h-6 items-center rounded-lg border border-gray-100 bg-gray-50 px-2 text-base text-gray-400 dark:border-gray-700/60 dark:bg-gray-800"
 				>
-					v{envPublic.PUBLIC_VERSION}
+					v0.1beta
 				</div>
 			</div>
 			<p class="text-base text-gray-600 dark:text-gray-400">
-				{envPublic.PUBLIC_APP_DESCRIPTION ||
-					"Making the community's best AI chat models available to everyone."}
+				Moving beyond traditional knowledge management systems, the LKE functions as a dynamic, evolving cognitive partner that maintains continuity across sessions, platforms, and interactions.
 			</p>
 		</div>
 	</div>

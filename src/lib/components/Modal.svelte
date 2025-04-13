@@ -58,7 +58,7 @@
 			handleBackdropClick(e);
 		}}
 		transition:fade|local={{ easing: cubicOut, duration: 300 }}
-		class="fixed inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-sm dark:bg-black/50"
+		class="fixed inset-0 z-40 flex items-center justify-center overflow-y-auto bg-black/80 backdrop-blur-sm dark:bg-black/50"
 	>
 		<div
 			role="dialog"
@@ -67,7 +67,7 @@
 			onkeydown={handleKeydown}
 			in:fly={{ y: 100 }}
 			class={[
-				"relative mx-auto max-h-[95dvh] max-w-[90dvw] overflow-y-auto overflow-x-hidden rounded-2xl bg-white shadow-2xl outline-none",
+				"relative mx-auto my-8 max-h-[calc(100vh-4rem)] overflow-y-auto overflow-x-hidden rounded-2xl bg-white shadow-2xl outline-none",
 				width,
 			]}
 		>
