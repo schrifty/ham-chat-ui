@@ -17,5 +17,6 @@ models/*
 !models/add-your-models-here.txt
 .terraform/
 *.tfstate
-*.tfstate.backup
 terraform.tfvars
+*.tfstate*.backup
+notes
