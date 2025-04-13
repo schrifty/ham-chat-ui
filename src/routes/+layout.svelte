@@ -24,7 +24,37 @@
 	import OverloadedModal from "$lib/components/OverloadedModal.svelte";
 	import { isHuggingChat } from "$lib/utils/isHuggingChat";
 
-	let { data = $bindable(), children } = $props();
+	interface Conversation {
+		id: string;
+		title: string;
+	}
+
+	interface Settings {
+		shareConversationsWithModelAuthors: boolean;
+		hideEmojiOnSidebar: boolean;
+		ethicsModalAccepted: boolean;
+		ethicsModalAcceptedAt: Date | null;
+		activeModel: string;
+		customPrompts: Record<string, any>;
+		assistants: any[];
+		tools: any[];
+		disableStream: boolean;
+		directPaste: boolean;
+	}
+
+	interface Data {
+		conversations: Conversation[];
+		shared: boolean;
+		models: any[];
+		oldModels: any[];
+		canLogin: boolean;
+		user: any;
+		assistant: any;
+		loginEnabled: boolean;
+		settings: Settings;
+	}
+
+	let { data, children } = $props<{ data: Data }>();
 
 	let conversations = $state(data.conversations);
 	$effect(() => {
@@ -71,7 +101,7 @@
 				return;
 			}
 
-			conversations = conversations.filter((conv) => conv.id !== id);
+			conversations = conversations.filter((conv: Conversation) => conv.id !== id);
 
 			if ($page.params.id === id) {
 				await goto(`${base}/`, { invalidateAll: true });
@@ -97,7 +127,7 @@
 				return;
 			}
 
-			conversations = conversations.map((conv) => (conv.id === id ? { ...conv, title } : conv));
+			conversations = conversations.map((conv: Conversation) => (conv.id === id ? { ...conv, title } : conv));
 		} catch (err) {
 			console.error(err);
 			$error = String(err);
@@ -114,7 +144,7 @@
 
 	$effect(() => {
 		if ($titleUpdate) {
-			const convIdx = conversations.findIndex(({ id }) => id === $titleUpdate?.convId);
+			const convIdx = conversations.findIndex(({ id }: { id: string }) => id === $titleUpdate?.convId);
 
 			if (convIdx != -1) {
 				conversations[convIdx].title = $titleUpdate?.title ?? conversations[convIdx].title;
@@ -124,13 +154,24 @@
 		}
 	});
 
-	const settings = createSettingsStore(data.settings);
+	const settings = createSettingsStore(data.settings ?? {
+		shareConversationsWithModelAuthors: false,
+		hideEmojiOnSidebar: false,
+		ethicsModalAccepted: false,
+		ethicsModalAcceptedAt: null,
+		activeModel: 'default',
+		customPrompts: {},
+		assistants: [],
+		tools: [],
+		disableStream: false,
+		directPaste: false
+	});
 
 	onMount(async () => {
 		if ($page.url.searchParams.has("model")) {
 			await settings
 				.instantSet({
-					activeModel: $page.url.searchParams.get("model") ?? $settings.activeModel,
+					activeModel: $page.url.searchParams.get("model") ?? data.settings?.activeModel ?? 'default',
 				})
 				.then(async () => {
 					const query = new URLSearchParams($page.url.searchParams.toString());
@@ -146,7 +187,7 @@
 
 			await settings
 				.instantSet({
-					tools: [...($settings.tools ?? []), ...(tools ?? [])],
+					tools: [...(data.settings?.tools ?? []), ...(tools ?? [])],
 				})
 				.then(async () => {
 					const query = new URLSearchParams($page.url.searchParams.toString());
@@ -161,11 +202,11 @@
 	let mobileNavTitle = $derived(
 		["/models", "/assistants", "/privacy", "/tools"].includes($page.route.id ?? "")
 			? ""
-			: conversations.find((conv) => conv.id === $page.params.id)?.title
+			: conversations.find((conv: Conversation) => conv.id === $page.params.id)?.title
 	);
 
 	let showDisclaimer = $derived(
-		!$settings.ethicsModalAccepted &&
+		!(data.settings?.ethicsModalAccepted ?? false) &&
 			$page.url.pathname !== `${base}/privacy` &&
 			envPublic.PUBLIC_APP_DISCLAIMER === "1" &&
 			!($page.data.shared === true)
@@ -228,7 +269,7 @@
 </svelte:head>
 
 {#if showDisclaimer}
-	<DisclaimerModal on:close={() => ($settings.ethicsModalAccepted = true)} />
+	<DisclaimerModal on:close={() => settings.instantSet({ ethicsModalAccepted: true })} />
 {/if}
 
 {#if $loginModalOpen}

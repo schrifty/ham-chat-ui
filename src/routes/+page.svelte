@@ -9,6 +9,7 @@
 	import { useSettingsStore } from "$lib/stores/settings.js";
 	import { findCurrentModel } from "$lib/utils/models";
 	import { onMount } from "svelte";
+	import { user } from "$lib/stores/auth";
 
 	let { data } = $props();
 	let loading = $state(false);
