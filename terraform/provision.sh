@@ -11,6 +11,14 @@ log "Updating system packages"
 sudo apt update -y
 sudo apt upgrade -y
 
+log "Setting up 2GB swap space"
+sudo fallocate -l 2G /swapfile        # allocates the swap file
+sudo chmod 600 /swapfile              # secures the file
+sudo mkswap /swapfile                 # formats it as swap
+sudo swapon /swapfile                 # activates it
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab   # persists it across reboots
+
+
 log "Installing core tools"
 sudo apt install -y curl git gnupg build-essential
 
