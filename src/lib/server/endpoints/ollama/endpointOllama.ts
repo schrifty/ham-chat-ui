@@ -100,12 +100,14 @@ export function endpointOllama(input: z.input<typeof endpointOllamaParametersSch
 					return;
 				}
 				if (!data.done) {
-					generatedText += data.response;
+					// Strip  token from response
+					const cleanResponse = (data.response ?? "").replace(/<\|im_end\|>/g, "");
+					generatedText += cleanResponse;
 
 					yield {
 						token: {
 							id: tokenId++,
-							text: data.response ?? "",
+							text: cleanResponse,
 							logprob: 0,
 							special: false,
 						},
@@ -117,7 +119,7 @@ export function endpointOllama(input: z.input<typeof endpointOllamaParametersSch
 					yield {
 						token: {
 							id: tokenId++,
-							text: data.response ?? "",
+							text: (data.response ?? "").replace(/<\|im_end\|>/g, ""),
 							logprob: 0,
 							special: true,
 						},
