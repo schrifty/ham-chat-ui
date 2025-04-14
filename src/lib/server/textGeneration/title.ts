@@ -14,10 +14,12 @@ export async function* generateTitleForConversation(
 	try {
 		const userMessage = conv.messages.find((m) => m.from === "user");
 		// HACK: detect if the conversation is new
-		if (conv.title !== "New Chat" || !userMessage) return;
+		if (!conv.title.startsWith("New Chat") || !userMessage) return;
 
 		const prompt = userMessage.content;
-		const title = (await generateTitle(prompt)) ?? "New Chat";
+		const title =
+			(await generateTitle(prompt)) ??
+			`New Chat ${new Date().toLocaleString("en-US", { month: "2-digit", day: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}`;
 
 		yield {
 			type: MessageUpdateType.Title,

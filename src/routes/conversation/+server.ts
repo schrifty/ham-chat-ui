@@ -99,7 +99,9 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 
 	const res = await collections.conversations.insertOne({
 		_id: new ObjectId(),
-		title: title || "New Chat",
+		title:
+			title ||
+			`New Chat ${new Date().toLocaleString("en-US", { month: "2-digit", day: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}`,
 		rootMessageId,
 		messages,
 		model: values.model,
