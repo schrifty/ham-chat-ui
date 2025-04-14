@@ -3,6 +3,7 @@
 
 	import { onDestroy, onMount, untrack } from "svelte";
 	import { goto } from "$app/navigation";
+	import { pendingMessage } from "$lib/stores/pendingMessage";
 	import { base } from "$app/paths";
 	import { page } from "$app/stores";
 
@@ -305,7 +306,19 @@
 			on:shareConversation={(ev) => shareConversation(ev.detail.id, ev.detail.title)}
 			on:deleteConversation={(ev) => deleteConversation(ev.detail)}
 			on:editConversationTitle={(ev) => editConversationTitle(ev.detail.id, ev.detail.title)}
-			on:message={(ev) => goto(`${base}/?q=${encodeURIComponent(ev.detail)}`)}
+			on:message={(ev) => {
+				if ($page.url.pathname.startsWith(`${base}/conversation/`)) {
+					// If we're in a conversation, send the message there
+					pendingMessage.set({
+						content: ev.detail,
+						files: []
+					});
+					goto(window.location.href, { replaceState: true });
+				} else {
+					// Otherwise create a new conversation
+					goto(`${base}/?q=${encodeURIComponent(ev.detail)}`);
+				}
+			}}
 		/>
 	</MobileNav>
 	<nav
@@ -318,7 +331,19 @@
 			on:shareConversation={(ev) => shareConversation(ev.detail.id, ev.detail.title)}
 			on:deleteConversation={(ev) => deleteConversation(ev.detail)}
 			on:editConversationTitle={(ev) => editConversationTitle(ev.detail.id, ev.detail.title)}
-			on:message={(ev) => goto(`${base}/?q=${encodeURIComponent(ev.detail)}`)}
+			on:message={(ev) => {
+				if ($page.url.pathname.startsWith(`${base}/conversation/`)) {
+					// If we're in a conversation, send the message there
+					pendingMessage.set({
+						content: ev.detail,
+						files: []
+					});
+					goto(window.location.href, { replaceState: true });
+				} else {
+					// Otherwise create a new conversation
+					goto(`${base}/?q=${encodeURIComponent(ev.detail)}`);
+				}
+			}}
 		/>
 	</nav>
 	{#if currentError}

@@ -3,6 +3,23 @@
 	import { pendingMessage } from "$lib/stores/pendingMessage";
 	import { isAborted } from "$lib/stores/isAborted";
 	import { onMount } from "svelte";
+
+	onMount(() => {
+		// Check for pending message
+		const unsubscribe = pendingMessage.subscribe(async (msg) => {
+			if (msg) {
+				// Clear the pending message
+				pendingMessage.set(undefined);
+				
+				// Send the message to the LLM
+				await writeMessage({
+					prompt: msg.content
+				});
+			}
+		});
+
+		return () => unsubscribe();
+	});
 	import { page } from "$app/state";
 	import { beforeNavigate, goto, invalidateAll } from "$app/navigation";
 	import { base } from "$app/paths";
