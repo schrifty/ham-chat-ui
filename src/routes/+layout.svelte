@@ -305,6 +305,7 @@
 			on:shareConversation={(ev) => shareConversation(ev.detail.id, ev.detail.title)}
 			on:deleteConversation={(ev) => deleteConversation(ev.detail)}
 			on:editConversationTitle={(ev) => editConversationTitle(ev.detail.id, ev.detail.title)}
+			on:message={(ev) => goto(`${base}/?q=${encodeURIComponent(ev.detail)}`)}
 		/>
 	</MobileNav>
 	<nav
@@ -317,6 +318,7 @@
 			on:shareConversation={(ev) => shareConversation(ev.detail.id, ev.detail.title)}
 			on:deleteConversation={(ev) => deleteConversation(ev.detail)}
 			on:editConversationTitle={(ev) => editConversationTitle(ev.detail.id, ev.detail.title)}
+			on:message={(ev) => goto(`${base}/?q=${encodeURIComponent(ev.detail)}`)}
 		/>
 	</nav>
 	{#if currentError}

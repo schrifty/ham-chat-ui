@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
 	import { base } from "$app/paths";
-	import { page } from "$app/state";
+	import { page } from "$app/stores";
 	import { env as envPublic } from "$env/dynamic/public";
 	import ChatWindow from "$lib/components/chat/ChatWindow.svelte";
 	import { ERROR_MESSAGES, error } from "$lib/stores/errors";
@@ -74,10 +74,14 @@
 		}
 	}
 
-	onMount(() => {
+	$effect(() => {
 		// check if there's a ?q query param with a message
-		const query = page.url.searchParams.get("q");
-		if (query) createConversation(query);
+		const query = $page.url.searchParams.get("q");
+		if (query) {
+			createConversation(query);
+			// Clear the query param after creating conversation
+			goto(`${base}/`, { replaceState: true });
+		}
 	});
 
 	let currentModel = $derived(

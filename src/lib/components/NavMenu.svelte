@@ -6,6 +6,7 @@
 	import { isAborted } from "$lib/stores/isAborted";
 	import { env as envPublic } from "$env/dynamic/public";
 	import NavConversationItem from "./NavConversationItem.svelte";
+	import NavPromptItem from "./NavPromptItem.svelte";
 	import type { LayoutData } from "../../routes/$types";
 	import type { ConvSidebar } from "$lib/types/ConvSidebar";
 	import type { Model } from "$lib/types/Model";
@@ -14,6 +15,9 @@
 	import type { Conversation } from "$lib/types/Conversation";
 	import { CONV_NUM_PER_PAGE } from "$lib/constants/pagination";
 	import { signOutUser } from "$lib/stores/auth";
+	import type { Prompt } from "$lib/types/Prompt";
+	import { promptsStore } from "$lib/stores/prompts";
+	import { createEventDispatcher } from "svelte";
 
 	interface Props {
 		conversations: ConvSidebar[];
@@ -25,6 +29,10 @@
 	let { conversations = $bindable(), canLogin, user, p = $bindable(0) }: Props = $props();
 
 	let hasMore = $state(true);
+
+	const dispatch = createEventDispatcher<{
+		message: string;
+	}>();
 
 	function handleNewChatClick() {
 		isAborted.set(true);
@@ -131,6 +139,15 @@
 		{/if}
 	{:then groupedConversations}
 		<div class="flex flex-col gap-1">
+			<!-- Add prompt items section -->
+			<h4 class="mb-1.5 mt-4 pl-0.5 text-sm text-gray-400 first:mt-0 dark:text-gray-500">
+				Prompts
+			</h4>
+			{#each $promptsStore as prompt}
+				<NavPromptItem prompt={prompt} on:message={e => dispatch('message', e.detail)} />
+			{/each}
+
+			<!-- Existing conversations section -->
 			{#each Object.entries(groupedConversations) as [group, convs]}
 				{#if convs.length}
 					<h4 class="mb-1.5 mt-4 pl-0.5 text-sm text-gray-400 first:mt-0 dark:text-gray-500">
