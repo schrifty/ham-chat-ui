@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { base } from "$app/paths";
-
+	import { goto } from "$app/navigation";
 	import HamiltonLogo from "$lib/components/icons/HamiltonLogo.svelte";
 	import { switchTheme } from "$lib/switchTheme";
 	import { isAborted } from "$lib/stores/isAborted";
@@ -13,6 +13,7 @@
 	import InfiniteScroll from "./InfiniteScroll.svelte";
 	import type { Conversation } from "$lib/types/Conversation";
 	import { CONV_NUM_PER_PAGE } from "$lib/constants/pagination";
+	import { signOutUser } from "$lib/stores/auth";
 
 	interface Props {
 		conversations: ConvSidebar[];
@@ -76,6 +77,16 @@
 		conversations = [...conversations, ...newConvs];
 	}
 
+	async function handleLogout(event: SubmitEvent) {
+ 	   event.preventDefault();
+  	  try {
+   	     await signOutUser();
+    	    goto("/login");
+    	} catch (error) {
+     	   console.error("Failed to log out:", error);
+    	}
+	}
+	``
 	$effect(() => {
 		if (conversations.length <= CONV_NUM_PER_PAGE) {
 			// reset p to 0 if there's only one page of content
@@ -141,8 +152,7 @@
 >
 	{#if user?.username || user?.email}
 		<form
-			action="{base}/logout"
-			method="post"
+			onsubmit={handleLogout}
 			class="group flex items-center gap-1.5 rounded-lg pl-2.5 pr-2 hover:bg-gray-100 dark:hover:bg-gray-700"
 		>
 			<span

@@ -26,10 +26,11 @@
             
             // Wait for the user store to be updated
             await new Promise<void>((resolve) => {
-                const unsubscribe = user.subscribe((value) => {
+                const unsub = user.subscribe(value => {
                     if (value) {
-                        unsubscribe();
                         resolve();
+                        // Clean up subscription after a short delay to ensure state is updated
+                        setTimeout(() => unsub(), 100);
                     }
                 });
             });
@@ -110,5 +111,3 @@
     </form>
     </div>
 </div>
-
-
