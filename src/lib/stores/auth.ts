@@ -1,50 +1,34 @@
 import { browser } from "$app/environment";
 import type { FirebaseApp } from "firebase/app";
-import { initializeApp, getApp } from "firebase/app";
+import { initializeApp, getApp, getApps } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword, signOut, type User } from "firebase/auth";
 import { writable } from "svelte/store";
 
-function handleFirebaseError(error: unknown): void {
-	if (!(error instanceof Error)) {
-		throw error;
-	}
-	if (!("code" in error)) {
-		throw error;
-	}
-	if (error.code !== "app/duplicate-app") {
-		throw error;
-	}
-}
-
 export const user = writable<User | null>(null);
 
+// Initialize these as null and only set them in the browser
+let app: FirebaseApp | null = null;
 let auth: ReturnType<typeof getAuth> | null = null;
 
-if (browser) {
-	const firebaseConfig = {
-		apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
-		authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",
-		projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "",
-	};
+// Only run Firebase initialization code in the browser
+if (browser && typeof window !== "undefined") {
+	// Ensure this code only runs once in the browser
+	if (!app && !auth) {
+		const firebaseConfig = {
+			apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
+			authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",
+			projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "",
+		};
 
-	console.log("Firebase Config:", {
-		apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-		authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-		projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-	});
+		// Get existing app or create new one
+		app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+		auth = getAuth(app);
 
-	let app: FirebaseApp;
-	try {
-		app = initializeApp(firebaseConfig);
-	} catch (error: unknown) {
-		handleFirebaseError(error);
-		app = getApp();
+		// Only set up auth state listener in the browser
+		auth.onAuthStateChanged((userData) => {
+			user.set(userData);
+		});
 	}
-	auth = getAuth(app);
-
-	auth.onAuthStateChanged((userData) => {
-		user.set(userData);
-	});
 }
 
 export const signIn = async (email: string, password: string) => {
