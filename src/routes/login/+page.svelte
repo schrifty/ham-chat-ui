@@ -1,8 +1,9 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-    import { signIn } from '$lib/stores/auth';
+    import { signIn, user } from '$lib/stores/auth';
     import { env as envPublic } from "$env/dynamic/public";
     import Logo from "$lib/components/icons/Logo.svelte";
+    import { goto } from '$app/navigation';
 
     let email = '';
     let password = '';
@@ -22,7 +23,19 @@
             } else {
                 localStorage.removeItem('rememberMe');
             }
-            window.location.href = '/';
+            
+            // Wait for the user store to be updated
+            await new Promise<void>((resolve) => {
+                const unsubscribe = user.subscribe((value) => {
+                    if (value) {
+                        unsubscribe();
+                        resolve();
+                    }
+                });
+            });
+            
+            // Use SvelteKit's goto for navigation
+            await goto('/');
         } catch (e: any) {
             error = e?.message || 'An error occurred';
         } finally {
