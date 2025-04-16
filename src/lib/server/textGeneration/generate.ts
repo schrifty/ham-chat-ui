@@ -42,6 +42,16 @@ export async function* generate(
 		};
 	}
 
+	logger.info(
+		{
+			messages,
+			...(preprompt ? { preprompt } : {}),
+			...(tools?.length ? { tools } : {}),
+			...(toolResults?.length ? { toolResults } : {}),
+		},
+		"Outgoing prompt"
+	);
+
 	for await (const output of await endpoint({
 		messages,
 		preprompt,
@@ -54,6 +64,7 @@ export async function* generate(
 	})) {
 		// text generation completed
 		if (output.generated_text) {
+			logger.info({ generated_text: output.generated_text }, "Model response");
 			let interrupted =
 				!output.token.special && !model.parameters.stop?.includes(output.token.text);
 
