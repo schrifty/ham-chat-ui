@@ -313,7 +313,8 @@
 						content: ev.detail,
 						files: []
 					});
-					goto(window.location.href, { replaceState: true });
+					// Force a reload to ensure the conversation component picks up the pending message
+					invalidateAll();
 				} else {
 					// Otherwise create a new conversation
 					goto(`${base}/?q=${encodeURIComponent(ev.detail)}`);
@@ -338,7 +339,8 @@
 						content: ev.detail,
 						files: []
 					});
-					goto(window.location.href, { replaceState: true });
+					// Force a reload to ensure the conversation component picks up the pending message
+					invalidateAll();
 				} else {
 					// Otherwise create a new conversation
 					goto(`${base}/?q=${encodeURIComponent(ev.detail)}`);
