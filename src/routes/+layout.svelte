@@ -203,7 +203,9 @@
 	let mobileNavTitle = $derived(
 		["/models", "/assistants", "/privacy", "/tools"].includes($page.route.id ?? "")
 			? ""
-			: conversations.find((conv: Conversation) => conv.id === $page.params.id)?.title
+			: conversations?.length
+			? conversations.find((conv: Conversation) => conv.id === $page.params.id)?.title ?? ""
+			: ""
 	);
 
 	let showDisclaimer = $derived(

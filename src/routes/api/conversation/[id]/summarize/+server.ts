@@ -63,6 +63,7 @@ export async function POST({ locals, params }) {
 	// Log the summarization
 	logger.info("Generated conversation summary", {
 		conversationId: id,
+		summary: trimmedSummary,
 		summaryLength: trimmedSummary.length,
 	});
 

@@ -368,6 +368,22 @@
 		} finally {
 			loading = false;
 			pending = false;
+
+			// Generate summary if we have 4+ messages
+			if (messages.length >= 4) {
+				try {
+					const summaryResponse = await fetch(`/api/conversation/${page.params.id}/summarize`, {
+						method: 'POST',
+					});
+					if (summaryResponse.ok) {
+						const result = await summaryResponse.json();
+						console.log('New conversation summary:', result.summary);
+					}
+				} catch (error) {
+					console.error('Failed to generate summary:', error);
+				}
+			}
+
 			await invalidateAll();
 		}
 	}
