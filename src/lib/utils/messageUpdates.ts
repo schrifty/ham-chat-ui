@@ -49,6 +49,7 @@ type MessageUpdateRequestOptions = {
 	isRetry: boolean;
 	isContinue: boolean;
 	webSearch: boolean;
+	userEmail?: string;
 	tools?: Array<string>;
 	files?: MessageFile[];
 };
@@ -69,6 +70,7 @@ export async function fetchMessageUpdates(
 		is_continue: opts.isContinue,
 		web_search: opts.webSearch,
 		tools: opts.tools,
+		userEmail: opts.userEmail,
 	});
 
 	opts.files?.forEach((file) => {

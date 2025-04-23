@@ -5,6 +5,7 @@ import type { v4 } from "uuid";
 
 export type Message = Partial<Timestamps> & {
 	from: "user" | "assistant" | "system";
+	userEmail?: string; // Email of the authenticated user who sent the message, "assistant", "system", or an email address
 	id: ReturnType<typeof v4>;
 	content: string;
 	updates?: MessageUpdate[];

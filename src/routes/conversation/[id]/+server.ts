@@ -137,7 +137,6 @@ export async function POST({ request, locals, params, getClientAddress }) {
 	const form = await request.formData();
 
 	const json = form.get("data");
-
 	if (!json || typeof json !== "string") {
 		error(400, "Invalid request");
 	}
@@ -149,6 +148,7 @@ export async function POST({ request, locals, params, getClientAddress }) {
 		is_continue: isContinue,
 		web_search: webSearch,
 		tools: toolsPreferences,
+		userEmail,
 	} = z
 		.object({
 			id: z.string().uuid().refine(isMessageId).optional(), // parent message id to append to for a normal message, or the message id for a retry/continue
@@ -158,6 +158,7 @@ export async function POST({ request, locals, params, getClientAddress }) {
 					.min(1)
 					.transform((s) => s.replace(/\r\n/g, "\n"))
 			),
+			userEmail: z.string().optional(),
 			is_retry: z.optional(z.boolean()),
 			is_continue: z.optional(z.boolean()),
 			web_search: z.optional(z.boolean()),
@@ -293,6 +294,7 @@ export async function POST({ request, locals, params, getClientAddress }) {
 			conv,
 			{
 				from: "user",
+				userEmail: userEmail || undefined,
 				content: newPrompt ?? "",
 				files: uploadedFiles,
 				createdAt: new Date(),

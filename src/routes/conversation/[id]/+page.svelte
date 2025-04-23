@@ -46,6 +46,9 @@
 
 	let { data = $bindable() } = $props();
 
+	$effect(() => {
+	});
+
 	let loading = $state(false);
 	let pending = $state(false);
 	let initialRun = true;
@@ -197,6 +200,7 @@
 						},
 						{
 							from: "user",
+							userEmail: data.user?.email || undefined,
 							content: prompt,
 							files: messageToRetry.files,
 						},
@@ -225,6 +229,7 @@
 			} else {
 				// just a normal linear conversation, so we add the user message
 				// and the blank assistant message back to back
+				console.log('[conversation/page.svelte] Creating message with email:', data.user?.email);
 				const newUserMessageId = addChildren(
 					{
 						messages,
@@ -232,6 +237,7 @@
 					},
 					{
 						from: "user",
+						userEmail: data.user?.email || undefined,
 						content: prompt ?? "",
 						files: base64Files,
 						createdAt: new Date(),
@@ -279,6 +285,7 @@
 					webSearch: !hasAssistant && !activeModel.tools && $webSearchParameters.useSearch,
 					tools: $settings.tools, // preference for tools
 					files: isRetry ? userMessage?.files : base64Files,
+					userEmail: data.user?.email || undefined,
 				},
 				messageUpdatesAbortController.signal
 			).catch((err) => {
