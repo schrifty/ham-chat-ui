@@ -6,6 +6,22 @@ import type { Message } from "$lib/types/Message";
 import { ObjectId } from "mongodb";
 import { json } from "@sveltejs/kit";
 import { logger } from "$lib/server/logger.js";
+import { defaultModel, models } from "$lib/server/models";
+import { getReturnFromGenerator } from "$lib/utils/getReturnFromGenerator";
+import { generate } from "$lib/server/textGeneration/generate";
+import type { EndpointMessage } from "$lib/server/endpoints/endpoints";
+import type { MessageUpdate } from "$lib/types/MessageUpdate";
+import { MessageUpdateType } from "$lib/types/MessageUpdate";
+
+// Helper function to convert AsyncIterable to AsyncGenerator
+async function* wrapAsGenerator<T>(iterable: AsyncIterable<T>): AsyncGenerator<T, T | undefined> {
+	let lastValue: T | undefined;
+	for await (const value of iterable) {
+		lastValue = value;
+		yield value;
+	}
+	return lastValue;
+}
 
 export async function POST({ locals, params }) {
 	// Validate conversation ID
@@ -25,51 +41,90 @@ export async function POST({ locals, params }) {
 	const messages = conversation.messages as Message[];
 
 	// Create a summary prompt
-	const summaryPrompt = `Please provide a concise summary (60 characters or less) of the following conversation:\n\n${messages
-		.map((msg) => `${msg.from}: ${msg.content}`)
-		.join("\n")}`;
+	const summaryPrompt = `Write a concise summary of this conversation. There should be no added prefixes or suffixes - just the summary. Be direct and focus on the key topics or actions. Do not include meta-commentary.
 
-	// Generate summary using OpenAI API directly
-	const response = await fetch("https://api.openai.com/v1/chat/completions", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-		},
-		body: JSON.stringify({
-			model: "gpt-4",
-			messages: [{ role: "user", content: summaryPrompt }],
-			max_tokens: 30,
-			temperature: 0.7,
-		}),
-	});
+Conversation:
+${messages.map((msg) => `${msg.from}: ${msg.content}`).join("\n")}
 
-	if (!response.ok) {
+Remember: The summary itself (excluding "Summary: ") must be 100 characters or less.`;
+
+	// Get the model to use - either from conversation or default
+	const modelId = conversation.model ?? defaultModel.id;
+	const model = models.find((m) => m.id === modelId) ?? defaultModel;
+
+	try {
+		// Get the model's endpoint
+		const endpoint = await model.getEndpoint();
+
+		// Convert to endpoint message format
+		const endpointMessages: EndpointMessage[] = [
+			{
+				from: "user",
+				content: summaryPrompt,
+			},
+		];
+
+		// Generate summary using the selected model
+		const result = await getReturnFromGenerator(
+			wrapAsGenerator<MessageUpdate>(
+				generate(
+					{
+						model,
+						endpoint,
+						conv: conversation,
+						messages: endpointMessages,
+						isContinue: false,
+						webSearch: false,
+						toolsPreference: [],
+						promptedAt: new Date(),
+						ip: "",
+					},
+					[],
+					undefined,
+					undefined
+				)
+			)
+		);
+
+		// Extract the summary text from the result
+		let summary = "";
+		if (result?.type === MessageUpdateType.FinalAnswer) {
+			summary = result.text;
+			if (!summary.startsWith("Summary: ")) {
+				summary = `Summary: ${summary}`;
+			}
+		} else if (result?.type === MessageUpdateType.Stream) {
+			summary = `Summary: ${result.token}`;
+		}
+
+		// Save the summary to the database
+		await collections.conversations.updateOne(
+			{
+				_id: new ObjectId(id),
+				...authCondition(locals),
+			},
+			{
+				$set: {
+					summary,
+				},
+			}
+		);
+
+		// Log the summarization
+		logger.info("Generated conversation summary", {
+			conversationId: id,
+			summary,
+			summaryLength: summary.length,
+			model: model.id,
+		});
+
+		return json({ summary });
+	} catch (e) {
+		logger.error("Failed to generate summary", {
+			conversationId: id,
+			model: model.id,
+			error: e,
+		});
 		throw error(500, "Failed to generate summary");
 	}
-
-	const result = await response.json();
-	const summary = result.choices[0].message.content.trim();
-
-	// Save the summary to the database
-	await collections.conversations.updateOne(
-		{
-			_id: new ObjectId(id),
-			...authCondition(locals),
-		},
-		{
-			$set: {
-				summary,
-			},
-		}
-	);
-
-	// Log the summarization
-	logger.info("Generated conversation summary", {
-		conversationId: id,
-		summary,
-		summaryLength: summary.length,
-	});
-
-	return json({ summary });
 }
