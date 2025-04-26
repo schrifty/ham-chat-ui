@@ -65,6 +65,9 @@
 	const nModels: number = $page.data.models.filter((el: Model) => !el.unlisted).length;
 
 	async function handleVisible() {
+		// At the top of handleVisible
+		console.log("Fetching conversations, page:", p);
+
 		p++;
 		const newConvs = await fetch(`${base}/api/conversations?p=${p}`)
 			.then((res) => res.json())
@@ -82,6 +85,9 @@
 		)
 		.catch(() => []);
 
+		// After the fetch response
+		console.log("Raw API response:", JSON.stringify(newConvs, null, 2));	
+		console.log("len:", newConvs.length);
 		if (newConvs.length === 0) {
 			hasMore = false;
 		}

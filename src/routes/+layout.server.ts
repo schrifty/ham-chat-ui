@@ -61,11 +61,19 @@ export const load: LayoutServerLoad = async ({ locals, depends, fetch }) => {
 					.then((res) => res.json())
 					.then(
 						(
-							convs: Pick<Conversation, "_id" | "title" | "updatedAt" | "model" | "assistantId">[]
+							convs: Pick<
+								Conversation,
+								"_id" | "title" | "updatedAt" | "model" | "assistantId" | "summary"
+							>[]
 						) =>
 							convs.map((conv) => ({
 								...conv,
+								id: conv._id.toString(),
+								title: conv.title,
 								updatedAt: new Date(conv.updatedAt),
+								model: conv.model,
+								assistantId: conv.assistantId,
+								summary: conv.summary,
 							}))
 					);
 
@@ -171,6 +179,7 @@ export const load: LayoutServerLoad = async ({ locals, depends, fetch }) => {
 							updatedAt: conv.updatedAt,
 							assistantId: conv.assistantId?.toString(),
 							avatarUrl,
+							summary: conv.summary,
 						} satisfies ConvSidebar;
 					})
 				)
