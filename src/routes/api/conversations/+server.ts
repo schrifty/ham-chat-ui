@@ -6,17 +6,20 @@ import { CONV_NUM_PER_PAGE } from "$lib/constants/pagination";
 
 export async function GET({ locals, url }) {
 	const p = parseInt(url.searchParams.get("p") ?? "0");
-
 	if (locals.user?._id || locals.sessionId) {
+		console.log("Auth condition:", authCondition(locals));
 		const convs = await collections.conversations
 			.find({
 				...authCondition(locals),
 			})
-			.project<Pick<Conversation, "_id" | "title" | "updatedAt" | "model" | "assistantId">>({
+			.project<
+				Pick<Conversation, "_id" | "title" | "updatedAt" | "model" | "assistantId" | "summary">
+			>({
 				title: 1,
 				updatedAt: 1,
 				model: 1,
 				assistantId: 1,
+				summary: 1,
 			})
 			.sort({ updatedAt: -1 })
 			.skip(p * CONV_NUM_PER_PAGE)
@@ -35,8 +38,10 @@ export async function GET({ locals, url }) {
 			model: conv.model,
 			modelId: conv.model, // legacy param iOS
 			assistantId: conv.assistantId,
+			summary: conv.summary,
 			modelTools: models.find((m) => m.id == conv.model)?.tools ?? false,
 		}));
+		console.log("RES:", JSON.stringify(res, null, 2));
 		return Response.json(res);
 	} else {
 		return Response.json({ message: "Must have session cookie" }, { status: 401 });

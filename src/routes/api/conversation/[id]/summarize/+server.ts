@@ -49,23 +49,27 @@ export async function POST({ locals, params }) {
 	}
 
 	const result = await response.json();
-	const summary = result.choices[0].message.content;
-
-	// Trim and ensure summary is not too long
-	const trimmedSummary = summary.trim().slice(0, 60);
+	const summary = result.choices[0].message.content.trim();
 
 	// Save the summary to the database
 	await collections.conversations.updateOne(
-		{ _id: new ObjectId(id) },
-		{ $set: { summary: trimmedSummary } }
+		{
+			_id: new ObjectId(id),
+			...authCondition(locals),
+		},
+		{
+			$set: {
+				summary,
+			},
+		}
 	);
 
 	// Log the summarization
 	logger.info("Generated conversation summary", {
 		conversationId: id,
-		summary: trimmedSummary,
-		summaryLength: trimmedSummary.length,
+		summary,
+		summaryLength: summary.length,
 	});
 
-	return json({ summary: trimmedSummary });
+	return json({ summary });
 }

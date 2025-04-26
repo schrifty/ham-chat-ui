@@ -69,14 +69,18 @@
 		const newConvs = await fetch(`${base}/api/conversations?p=${p}`)
 			.then((res) => res.json())
 			.then((convs) =>
-				convs.map(
-					(conv: Pick<Conversation, "_id" | "title" | "updatedAt" | "model" | "assistantId">) => ({
-						...conv,
-						updatedAt: new Date(conv.updatedAt),
-					})
-				)
+			convs.map(
+    			(conv: Pick<Conversation, "_id" | "title" | "updatedAt" | "model" | "assistantId" | "summary">) => ({
+					id: conv._id.toString(),
+					title: conv.title,
+					updatedAt: new Date(conv.updatedAt),
+					model: conv.model,
+					assistantId: conv.assistantId,
+					summary: conv.summary
+    			})
 			)
-			.catch(() => []);
+		)
+		.catch(() => []);
 
 		if (newConvs.length === 0) {
 			hasMore = false;

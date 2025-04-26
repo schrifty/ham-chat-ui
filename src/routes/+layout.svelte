@@ -28,6 +28,10 @@
 	interface Conversation {
 		id: string;
 		title: string;
+		updatedAt: Date;
+		model?: string;
+		assistantId?: string;
+		summary?: string;
 	}
 
 	interface Settings {

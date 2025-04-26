@@ -378,6 +378,12 @@
 					if (summaryResponse.ok) {
 						const result = await summaryResponse.json();
 						console.log('New conversation summary:', result.summary);
+						const convInData = conversations.find(({ id }) => id === page.params.id);
+						if (convInData) {
+							console.log("saving summary to conv");
+							convInData.summary = result.summary;
+							await invalidateAll();
+						}
 					}
 				} catch (error) {
 					console.error('Failed to generate summary:', error);
