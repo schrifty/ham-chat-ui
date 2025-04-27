@@ -1,6 +1,7 @@
 <script lang="ts">
 	import CarbonTrashCan from "~icons/carbon/trash-can";
 	import CarbonArrowUpRight from "~icons/carbon/arrow-up-right";
+	import CarbonAdd from "~icons/carbon/add";
 
 	import { useSettingsStore } from "$lib/stores/settings";
 	import Switch from "$lib/components/Switch.svelte";
@@ -8,8 +9,53 @@
 	import { goto } from "$app/navigation";
 	import { error } from "$lib/stores/errors";
 	import { base } from "$app/paths";
+	import { page } from "$app/stores";
 
 	let settings = useSettingsStore();
+	let loading = $state(false);
+
+	function handleDeleteConversations(e: Event) {
+		e.preventDefault();
+		if (confirm("Are you sure you want to delete all conversations?")) {
+			fetch(`${base}/api/conversations`, {
+				method: "DELETE",
+			})
+				.then(async () => {
+					await goto(`${base}/`, { invalidateAll: true });
+				})
+				.catch((err) => {
+					console.error(err);
+					$error = err.message;
+				});
+		}
+	}
+
+	function handlePopulateDatabase(e: Event) {
+		e.preventDefault();
+		if (!confirm('Are you sure you want to populate the database with test data?')) return;
+		
+		loading = true;
+		fetch(`${base}/api/populate`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ flags: ['all'] })
+		})
+			.then(async (res) => {
+				const data = await res.json();
+				if (!res.ok) {
+					throw new Error(data.message || 'Failed to populate database');
+				}
+				alert(data.message);
+				await goto(`${base}/`, { invalidateAll: true });
+			})
+			.catch((err) => {
+				console.error('Population error:', err);
+				$error = err.message;
+			})
+			.finally(() => {
+				loading = false;
+			});
+	}
 </script>
 
 <div class="flex w-full flex-col gap-5">
@@ -81,25 +127,23 @@
 				><CarbonArrowUpRight class="mr-1.5 shrink-0 text-sm " /> Share your feedback on HuggingChat</a
 			>
 			<button
-				onclick={async (e) => {
-					e.preventDefault();
-
-					confirm("Are you sure you want to delete all conversations?") &&
-						(await fetch(`${base}/api/conversations`, {
-							method: "DELETE",
-						})
-							.then(async () => {
-								await goto(`${base}/`, { invalidateAll: true });
-							})
-							.catch((err) => {
-								console.error(err);
-								$error = err.message;
-							}));
-				}}
+				onclick={handleDeleteConversations}
 				type="submit"
 				class="flex items-center underline decoration-gray-300 underline-offset-2 hover:decoration-gray-700"
 				><CarbonTrashCan class="mr-2 inline text-sm text-red-500" />Delete all conversations</button
 			>
+			<button
+				onclick={handlePopulateDatabase}
+				disabled={loading}
+				class="flex items-center underline decoration-gray-300 underline-offset-2 hover:decoration-gray-700 disabled:opacity-50"
+			>
+				{#if loading}
+					<div class="mr-2 inline h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
+				{:else}
+					<CarbonAdd class="mr-2 inline text-sm text-blue-500" />
+				{/if}
+				Populate database with test data
+			</button>
 		</div>
 	</div>
 </div>
