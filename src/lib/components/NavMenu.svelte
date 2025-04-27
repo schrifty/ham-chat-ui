@@ -18,6 +18,7 @@
 	import type { Prompt } from "$lib/types/Prompt";
 	import { promptsStore } from "$lib/stores/prompts";
 	import { createEventDispatcher } from "svelte";
+import { modeStore } from "$lib/stores/mode";
 
 	interface Props {
 		conversations: ConvSidebar[];
@@ -149,6 +150,26 @@
 		{/if}
 	{:then groupedConversations}
 		<div class="flex flex-col gap-1">
+			<!-- Mode Switch Section -->
+			<h4 class="mb-1.5 mt-4 pl-0.5 text-sm text-gray-400 first:mt-0 dark:text-gray-500">
+				Mode
+			</h4>
+			<div class="flex gap-2 mb-2">
+				<button
+					class="flex-1 rounded-lg border px-2 py-1 text-sm font-medium bg-white hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 shadow-sm { $modeStore === 'individual' ? 'ring-2 ring-blue-600 border-blue-600' : '' }"
+					onclick={() => modeStore.set('individual')}
+					aria-pressed={$modeStore === 'individual'}
+				>
+					Individual
+				</button>
+				<button
+					class="flex-1 rounded-lg border px-2 py-1 text-sm font-medium bg-white hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 shadow-sm { $modeStore === 'team' ? 'ring-2 ring-blue-600 border-blue-600' : '' }"
+					onclick={() => modeStore.set('team')}
+					aria-pressed={$modeStore === 'team'}
+				>
+					Team
+				</button>
+			</div>		
 			<!-- Add prompt items section -->
 			<h4 class="mb-1.5 mt-4 pl-0.5 text-sm text-gray-400 first:mt-0 dark:text-gray-500">
 				Prompts
